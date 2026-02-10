@@ -2,31 +2,50 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>حاسبة الاستثمار</title>
+    <title>حاسبة الاستثمار المتقدمة</title>
     <style>
         :root { --primary: #27ae60; --bg: #f8fafc; --text: #334155; --border: #e2e8f0; }
         body { font-family: system-ui, -apple-system, sans-serif; background: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text); }
         
-        .card { background: #fff; width: 880px; max-width: 98%; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); display: grid; grid-template-columns: 280px 1fr; overflow: hidden; }
+        .card { background: #fff; width: 920px; max-width: 98%; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); display: grid; grid-template-columns: 320px 1fr; overflow: hidden; }
         
-        .inputs { padding: 20px; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
-        h3 { margin: 0 0 5px 0; font-size: 16px; color: var(--primary); }
+        .inputs { padding: 20px; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; background: #fff; }
+        h3 { margin: 0 0 5px 0; font-size: 16px; color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 5px; width: fit-content; }
         
         .input-group { display: flex; flex-direction: column; gap: 3px; }
         label { font-size: 11px; font-weight: 600; color: #64748b; }
-        input, select { width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; outline: none; transition: 0.2s; background: #fff; box-sizing: border-box; }
+        input, select { width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; outline: none; transition: 0.2s; background: #fff; box-sizing: border-box; }
         input:focus, select:focus { border-color: var(--primary); }
         
         .split-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
         .duration-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 5px; }
-        .duration-btn { background: var(--bg); border: 1px solid var(--border); padding: 5px; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; transition: 0.2s; color: #475569; }
+        .duration-btn { background: var(--bg); border: 1px solid var(--border); padding: 6px; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; transition: 0.2s; color: #475569; }
         .duration-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-        .res { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
-        .res div { background: var(--bg); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
-        .res span { display: block; font-size: 10px; color: #64748b; }
-        .res strong { display: block; font-size: 14px; color: var(--primary); margin-top: 2px; }
+        .res-container { margin-top: 15px; display: flex; flex-direction: column; gap: 6px; }
+        
+        /* تعديل: جعل النص والرقم في المنتصف متجاورين */
+        .res-row-inline { 
+            background: #f1f5f9; 
+            padding: 8px 12px; 
+            border-radius: 6px; 
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: center; /* توسيط المحتوى بالكامل */
+            align-items: center;
+            gap: 15px; /* مسافة ثابتة بين النص والرقم */
+        }
+        .res-row-inline span { font-size: 11px; color: #64748b; font-weight: 600; }
+        .res-row-inline strong { font-size: 14px; color: var(--text); }
+
+        .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .res-item { background: var(--bg); padding: 8px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
+        .res-item.highlight { background: #f0fdf4; border-color: #bcf0da; }
+        
+        .res-item span { display: block; font-size: 10px; color: #64748b; font-weight: 600; margin-bottom: 2px; }
+        .res-item strong { display: block; font-size: 13px; color: var(--text); }
+        .res-item.highlight strong { color: var(--primary); }
 
         .chart-area { padding: 20px 20px 50px 70px; display: flex; flex-direction: column; justify-content: center; background: #fff; }
         svg { width: 100%; height: 350px; overflow: visible; }
@@ -37,10 +56,9 @@
         .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #64748b; }
         .legend-dot { width: 10px; height: 3px; border-radius: 2px; }
 
-        @media (max-width: 750px) {
-            .card { grid-template-columns: 1fr; }
+        @media (max-width: 850px) {
+            .card { grid-template-columns: 1fr; width: 100%; margin: 10px; }
             .inputs { border-left: none; border-bottom: 1px solid var(--border); }
-            .chart-area { padding: 20px 20px 50px 70px; }
         }
     </style>
 </head>
@@ -66,7 +84,7 @@
                 <input type="number" id="r" value="10" oninput="calc()">
             </div>
             <div class="input-group">
-                <label>نوع التركيب</label>
+                <label>توزيع الارباح واعادة استثمارها</label>
                 <select id="compound" onchange="calc()">
                     <option value="12">شهري</option>
                     <option value="4">ربع سنوي</option>
@@ -94,9 +112,33 @@
             <button class="duration-btn" onclick="setYears(30, this)">30س</button>
         </div>
 
-        <div class="res">
-            <div><span>الرصيد النهائي</span><strong id="n">0</strong></div>
-            <div style="background: #f0fdf4;"><span>القوة الشرائية</span><strong id="p">0</strong></div>
+        <div class="res-container">
+            <div class="res-row-inline">
+                <span>المبلغ الفعلي المدخر:</span>
+                <strong id="totalSaved">0</strong>
+            </div>
+            
+            <div class="res-grid">
+                <div class="res-item">
+                    <span>الرصيد الأسمي نهاية الفترة</span>
+                    <strong id="n">0</strong>
+                </div>
+                <div class="res-item">
+                    <span>العائد الاسمي/بدون التضخم</span>
+                    <strong id="profitNominal" style="color: #2980b9;">0</strong>
+                </div>
+            </div>
+
+            <div class="res-grid">
+                <div class="res-item highlight">
+                    <span>القوة الشرائية نهاية الفترة</span>
+                    <strong id="p">0</strong>
+                </div>
+                <div class="res-item highlight">
+                    <span>العائد الحقيقي/بعد التضخم</span>
+                    <strong id="profitReal">0</strong>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -127,28 +169,37 @@ function setYears(y, btn) {
 
 function calc() {
     const initCapital = parseFloat(document.getElementById('init').value) || 0;
-    const P = parseFloat(document.getElementById('m').value) || 0;
+    const monthlySave = parseFloat(document.getElementById('m').value) || 0;
     const rAnn = parseFloat(document.getElementById('r').value) / 100;
     const fAnn = parseFloat(document.getElementById('f').value) / 100;
     const years = parseInt(document.getElementById('y').value) || 1;
-    const n = parseInt(document.getElementById('compound').value);
+    const compoundType = parseInt(document.getElementById('compound').value);
 
+    const totalInvested = initCapital + (monthlySave * years * 12);
+    
     let ptsN = [], ptsR = [];
-    const rateM = Math.pow(1 + rAnn/n, n/12) - 1;
+    const rateM = Math.pow(1 + rAnn/compoundType, compoundType/12) - 1;
     const rRealAnn = ((1 + rAnn) / (1 + fAnn)) - 1;
-    const rateRealM = Math.pow(1 + rRealAnn/n, n/12) - 1;
+    const rateRealM = Math.pow(1 + rRealAnn/compoundType, compoundType/12) - 1;
 
     for (let i = 0; i <= years; i++) {
         let months = i * 12;
-        let vN = initCapital * Math.pow(1 + rateM, months) + (months > 0 ? P * ((Math.pow(1 + rateM, months) - 1) / rateM) : 0);
-        let vR = initCapital * Math.pow(1 + rateRealM, months) + (months > 0 ? P * ((Math.pow(1 + rateRealM, months) - 1) / rateRealM) : 0);
+        let vN = initCapital * Math.pow(1 + rateM, months) + (months > 0 ? monthlySave * ((Math.pow(1 + rateM, months) - 1) / rateM) : 0);
+        let vR = initCapital * Math.pow(1 + rateRealM, months) + (months > 0 ? monthlySave * ((Math.pow(1 + rateRealM, months) - 1) / rateRealM) : 0);
         ptsN.push(vN);
         ptsR.push(vR);
     }
 
+    const finalNominal = ptsN[years];
+    const finalReal = ptsR[years];
+
+    document.getElementById('totalSaved').innerText = Math.round(totalInvested).toLocaleString();
+    document.getElementById('n').innerText = Math.round(finalNominal).toLocaleString();
+    document.getElementById('p').innerText = Math.round(finalReal).toLocaleString();
+    document.getElementById('profitNominal').innerText = "+" + Math.round(finalNominal - totalInvested).toLocaleString();
+    document.getElementById('profitReal').innerText = "+" + Math.round(finalReal - totalInvested).toLocaleString();
+
     const max = Math.max(...ptsN, 100) * 1.1;
-    document.getElementById('n').innerText = Math.round(ptsN[years]).toLocaleString();
-    document.getElementById('p').innerText = Math.round(ptsR[years]).toLocaleString();
     updateUI(ptsN, ptsR, years, max);
 }
 
@@ -162,7 +213,6 @@ function updateUI(ptsN, ptsR, Y, max) {
         let val = (max / 4) * i;
         gLines.innerHTML += `<line class="grid-line" x1="0" y1="${y}" x2="${CHART_WIDTH}" y2="${y}" />`;
         let labelText = val >= 1000000 ? (val/1000000).toFixed(1)+'M' : (val/1000).toFixed(0)+'k';
-        /* التعديل: استخدام x=-35 و text-anchor: middle لتوسيط الأرقام في الفراغ المخصص لها */
         gLabels.innerHTML += `<text x="-35" y="${y+4}" text-anchor="middle" class="axis-text">${labelText}</text>`;
     }
 
@@ -170,15 +220,16 @@ function updateUI(ptsN, ptsR, Y, max) {
     for(let i=0; i<=Y; i+=step) {
         let x = (i / Y) * CHART_WIDTH;
         gLines.innerHTML += `<line class="grid-line" x1="${x}" y1="0" x2="${x}" y2="${CHART_HEIGHT}" />`;
-        gLabels.innerHTML += `<text x="${x}" y="${CHART_HEIGHT + 25}" text-anchor="middle" class="axis-text">${i}س</text>`;
+        gLabels.innerHTML += `<text x="${x}" y="${CHART_HEIGHT + 20}" text-anchor="middle" class="axis-text">${i}س</text>`;
     }
 
-    const getD = (data) => data.map((v, i) => `${i?'L':'M'} ${(i/Y)*CHART_WIDTH} ${CHART_HEIGHT-(v/max)*CHART_HEIGHT}`).join(' ');
-    document.getElementById('pathN').setAttribute("d", getD(ptsN));
-    document.getElementById('pathR').setAttribute("d", getD(ptsR) + ` L ${CHART_WIDTH} ${CHART_HEIGHT} L 0 ${CHART_HEIGHT} Z`);
+    const getPath = (pts) => pts.map((v, i) => `${i === 0 ? 'M' : 'L'} ${(i / Y) * CHART_WIDTH} ${CHART_HEIGHT - (v / max) * CHART_HEIGHT}`).join(' ');
+    document.getElementById('pathN').setAttribute('d', getPath(ptsN));
+    document.getElementById('pathR').setAttribute('d', getPath(ptsR) + ` L ${CHART_WIDTH} ${CHART_HEIGHT} L 0 ${CHART_HEIGHT} Z`);
 }
 
 window.onload = calc;
 </script>
+
 </body>
 </html>
