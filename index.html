@@ -3,51 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حاسبة الاستثمار الاحترافية - نسخة النصوص الإرشادية</title>
+    <title>حاسبة الاستثمار المتقدمة - النسخة الذهبية المحدثة</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root { 
-            --primary: #27ae60; 
-            --nominal: #e67e22; 
-            --bg: #f1f5f9; 
-            --text: #1e293b; 
-            --border: #e2e8f0; 
-            --loss: rgba(243, 156, 18, 0.15); 
-            --danger: #e74c3c;
+            --primary: #27ae60; --nominal: #e67e22; --bg: #f1f5f9; 
+            --text: #1e293b; --border: #e2e8f0; --loss: rgba(243, 156, 18, 0.15); --danger: #e74c3c;
+            --info: #3498db; --secondary: #64748b;
         }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text); }
-        .card { background: #fff; width: 750px; max-width: 95%; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: grid; grid-template-columns: 310px 1fr; overflow: hidden; margin: 20px; }
-        .inputs { padding: 14px; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: 7px; }
+        .card { background: #fff; width: 750px; max-width: 95%; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: grid; grid-template-columns: 310px 1fr; overflow: hidden; margin: 10px; }
+        .inputs { padding: 12px; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
         h3 { margin: 0 0 4px 0; font-size: 15px; color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 2px; width: fit-content; }
-        .input-group { display: flex; flex-direction: column; gap: 1px; }
-        label { font-size: 10.5px; font-weight: 600; color: #64748b; }
-        input, select { width: 100%; padding: 0px 10px; border: 1px solid var(--border); border-radius: 5px; font-size: 12.5px; height: 26px; line-height: 26px; outline: none; transition: 0.2s; background: #fff; box-sizing: border-box; }
-        input:focus, select:focus { border-color: var(--primary); }
+        .input-group { display: flex; flex-direction: column; gap: 1px; position: relative; }
+        label { font-size: 10.5px; font-weight: 600; color: #64748b; display: flex; align-items: center; gap: 5px; }
         
-        /* تنسيق النصوص الإرشادية (Placeholder) */
-        input::placeholder { color: #cbd5e1; font-size: 11px; }
+        .info-icon { cursor: help; color: var(--info); font-size: 13px; font-weight: bold; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; }
+        .info-icon:hover { transform: scale(1.2); color: #2980b9; }
+        
+        .tooltip { position: relative; display: inline-flex; align-items: center; gap: 4px; }
+        .tooltip .tooltiptext {
+            visibility: hidden; width: 240px; background-color: #1e293b; color: #fff; 
+            text-align: right; border-radius: 8px; padding: 10px; position: absolute; 
+            z-index: 99; bottom: 130%; right: -10px; opacity: 0; transition: opacity 0.3s, transform 0.3s; 
+            font-size: 10.5px; line-height: 1.5; box-shadow: 0 8px 15px rgba(0,0,0,0.2); 
+            pointer-events: none; transform: translateY(10px);
+        }
+        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; transform: translateY(0); }
+        .tooltip .tooltiptext::after { content: ""; position: absolute; top: 100%; right: 15px; border-width: 6px; border-style: solid; border-color: #1e293b transparent transparent transparent; }
 
-        .reset-btn { background: #fff; border: 1px solid var(--danger); color: var(--danger); padding: 0; border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: bold; height: 26px; transition: 0.2s; margin-top: auto; }
+        input, select { width: 100%; padding: 0px 8px; border: 1px solid var(--border); border-radius: 5px; font-size: 12px; height: 24px; line-height: 24px; outline: none; transition: 0.2s; background: #fff; box-sizing: border-box; }
+        input:focus, select:focus { border-color: var(--primary); }
+        input::placeholder { color: #cbd5e1; font-size: 10.5px; }
+        .reset-btn { background: #fff; border: 1px solid var(--danger); color: var(--danger); border-radius: 5px; cursor: pointer; font-size: 10.5px; font-weight: bold; height: 24px; transition: 0.2s; }
         .reset-btn:hover { background: var(--danger); color: #fff; }
-
-        .split-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .duration-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 2px; }
-        .duration-btn { background: #f8fafc; border: 1px solid var(--border); padding: 5px; border-radius: 4px; cursor: pointer; font-size: 10.5px; font-weight: bold; color: #475569; }
+        .split-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: flex-end; }
+        .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; align-items: flex-end; }
+        .duration-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 1px; }
+        .duration-btn { background: #f8fafc; border: 1px solid var(--border); padding: 4px; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; color: #475569; }
         .duration-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         
-        .res-container { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
-        .currency-wrap { display: flex; flex-direction: row-reverse; align-items: center; gap: 5px; justify-content: center; }
-        .num-val { direction: ltr; font-family: sans-serif; }
-        .curr-sym { font-size: 11px; color: #64748b; font-weight: bold; }
+        .res-container { margin-top: 4px; display: flex; flex-direction: column; gap: 3px; }
+        .res-row-inline { background: #f8fafc; padding: 2px 10px; border-radius: 5px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .res-row-inline span { font-size: 10px; font-weight: 600; }
+        .res-row-inline strong { font-size: 12px; }
         
-        .res-row-inline { background: #f8fafc; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .res-row-inline span { font-size: 11px; font-weight: 600; }
-        .res-row-inline strong { font-size: 14px; }
-        
-        .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-        .res-item { background: #fff; padding: 6px 4px; border-radius: 6px; text-align: center; border: 1px solid var(--border); }
+        .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+        .res-item { background: #fff; padding: 4px 2px; border-radius: 5px; text-align: center; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .res-item.highlight { background: #f0fdf4; border-color: #bcf0da; }
-        .res-item span { display: block; font-size: 9.5px; color: #64748b; font-weight: 600; margin-bottom: 2px; }
-        .res-item strong { display: block; font-size: 13.5px; }
+        .res-label-box { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 9px; color: #64748b; font-weight: 600; margin-bottom: 1px; }
+        .res-item strong { display: block; font-size: 12.5px; line-height: 1.2; }
+
+        .export-btn { 
+            margin-top: 5px; background: var(--secondary); color: white; border: none; 
+            border-radius: 5px; padding: 6px; font-size: 11px; font-weight: bold; 
+            cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .export-btn:hover { background: #475569; }
+
+        .currency-wrap { display: flex; flex-direction: row-reverse; align-items: center; gap: 4px; justify-content: center; }
+        .num-val { direction: ltr; font-family: sans-serif; }
+        .curr-sym { font-size: 10px; color: #64748b; font-weight: bold; }
 
         .chart-area { padding: 15px 10px 30px 25px; display: flex; flex-direction: column; justify-content: center; background: #fff; }
         svg { width: 100%; height: 280px; overflow: visible; }
@@ -56,15 +73,46 @@
         #pathFill { fill: var(--loss); stroke: none; }
         #pathN { stroke: var(--nominal); stroke-width: 2.5; fill: none; } 
         #pathR { stroke: var(--primary); stroke-width: 2.5; fill: none; }
-        
         .legend { display: flex; justify-content: center; gap: 15px; margin-top: 10px; }
         .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #64748b; }
+
+        /* تعديل التقرير ليكون طولياً Portrait وتصغير الأعمدة */
+        #pdf-template { 
+            position: absolute; left: -9000px; top: 0; width: 850px; 
+            background: #fff; padding: 40px; direction: rtl;
+        }
+        .report-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--primary); padding-bottom: 15px; margin-bottom: 20px; }
+        
+        /* القسم الأيمن 35% والأيسر 65% */
+        .report-body { display: flex; gap: 20px; align-items: flex-start; }
+        .report-right { width: 35%; }
+        .report-left { width: 65%; }
+
+        .summary-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+        .summary-title { color: var(--primary); border-bottom: 1px solid var(--border); margin-bottom: 10px; padding-bottom: 5px; font-size: 16px; font-weight: bold; }
+        .summary-item { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12.5px; border-bottom: 1px solid #f1f5f9; padding-bottom: 2px; }
+        
+        .report-table { width: 100%; border-collapse: collapse; font-size: 10px; table-layout: fixed; }
+        .report-table th { background: var(--primary); color: #fff; padding: 6px 2px; text-align: center; border: 1px solid #eee; }
+        .report-table td { padding: 4px 2px; border: 1px solid #eee; text-align: center; word-wrap: break-word; }
+        
+        /* تطبيق نسب تصغير الأعمدة التي اقترحتها */
+        .col-y { width: 7%; }   /* سنة */
+        .col-q { width: 14%; }  /* قسط */
+        .col-m { width: 14%; }  /* مودع */
+        .col-rn { width: 15%; } /* ربح اسمي */
+        .col-bn { width: 17%; } /* رصيد اسمي */
+        .col-rr { width: 15%; } /* ربح حقيقي */
+        .col-bp { width: 18%; } /* قوة شرائية */
+
+        .report-chart-container { margin-top: 20px; border: 1px solid var(--border); padding: 10px; border-radius: 8px; text-align: center; }
+
         @media (max-width: 760px) { .card { grid-template-columns: 1fr; width: 100%; } .inputs { border-left: none; border-bottom: 1px solid var(--border); } }
     </style>
 </head>
 <body>
 
-<div class="card">
+<div class="card" id="main-card">
     <div class="inputs">
         <h3>حاسبة الاستثمار المتقدمة</h3>
         
@@ -85,18 +133,25 @@
                 <input type="number" id="m" placeholder="ادخل الادخار" oninput="calc()">
             </div>
             <div class="input-group">
+                <label>
+                    الزيادة السنوية للادخار %
+                    <div class="tooltip">
+                        <span class="info-icon">🛈</span>
+                        <span class="tooltiptext">نسبة نمو ادخارك سنوياً؛ فإذا بدأت بـ 1000 ريال وزيادة 10%، سيصبح قسطك 1100 ريال في السنة الثانية وهكذا. ميزة حيوية لتعويض التضخم ومواكبة نمو دخلك.</span>
+                    </div>
+                </label>
+                <input type="number" id="stepUp" placeholder="مثال: 10%" step="0.1" oninput="calc()">
+            </div>
+        </div>
+
+        <div class="row-3">
+            <div class="input-group">
                 <label>الادخار كل:</label>
                 <select id="type" onchange="calc()">
                     <option value="" disabled selected>اختر...</option>
                     <option value="beginning">بداية الشهر</option>
                     <option value="end">نهاية الشهر</option>
                 </select>
-            </div>
-        </div>
-        <div class="split-row">
-            <div class="input-group">
-                <label>العائد السنوي %</label>
-                <input type="number" id="r" placeholder="ادخل العائد" step="0.1" oninput="calc()">
             </div>
             <div class="input-group">
                 <label>توزيع الأرباح</label>
@@ -108,54 +163,84 @@
                     <option value="1">سنوي</option>
                 </select>
             </div>
+            <div class="input-group">
+                <label>السنوات</label>
+                <input type="number" id="y" placeholder="السنوات" oninput="calc()">
+            </div>
         </div>
+
         <div class="split-row">
+            <div class="input-group">
+                <label>العائد السنوي %</label>
+                <input type="number" id="r" placeholder="ادخل العائد" step="0.1" oninput="calc()">
+            </div>
             <div class="input-group">
                 <label>التضخم %</label>
                 <input type="number" id="f" placeholder="ادخل التضخم" step="0.1" oninput="calc()">
             </div>
-            <div class="input-group">
-                <label>السنوات</label>
-                <input type="number" id="y" placeholder="ادخل السنوات" oninput="calc()">
-            </div>
         </div>
+
         <div class="duration-buttons">
             <button class="duration-btn" onclick="setYears(10, this)">10س</button>
             <button class="duration-btn" onclick="setYears(20, this)">20س</button>
             <button class="duration-btn" onclick="setYears(30, this)">30س</button>
             <button class="duration-btn" onclick="setYears(40, this)">40س</button>
         </div>
+
         <div class="res-container">
             <div class="res-row-inline">
-                <span>إجمالي مبلغ الادخار:</span>
+                <span>قسط الشهر في آخر سنة:</span>
+                <div class="currency-wrap">
+                    <span class="curr-sym">﷼</span>
+                    <strong class="num-val" id="lastYearPmt" style="color: #6366f1;">0</strong>
+                </div>
+            </div>
+            <div class="res-row-inline" style="background: #eff6ff; border-color: #bfdbfe;">
+                <span>إجمالي المودع (الأصل):</span>
                 <div class="currency-wrap">
                     <span class="curr-sym">﷼</span>
                     <strong class="num-val" id="totalSaved">0</strong>
                 </div>
             </div>
+            
             <div class="res-grid">
                 <div class="res-item">
-                    <span>الرصيد الاسمي</span>
+                    <div class="res-label-box">
+                        <span>الرصيد الاسمي</span>
+                        <div class="tooltip"><span class="info-icon">🛈</span><span class="tooltiptext">هو كامل قيمة المبالغ التي استثمرتها مضافاً لها أرباحك بدون حساب التضخم.</span></div>
+                    </div>
                     <div class="currency-wrap"><span class="curr-sym">﷼</span><strong class="num-val" id="n">0</strong></div>
                 </div>
                 <div class="res-item">
-                    <span>إجمالي الربح</span>
+                    <div class="res-label-box">
+                        <span>إجمالي الربح</span>
+                        <div class="tooltip"><span class="info-icon">🛈</span><span class="tooltiptext">هو إجمالي الربح الذي حققته بدون حساب التضخم.</span></div>
+                    </div>
                     <div class="currency-wrap"><span class="curr-sym">﷼</span><strong class="num-val" id="profitNominal" style="color: #2563eb;">0</strong></div>
                 </div>
             </div>
             <div class="res-grid">
                 <div class="res-item highlight">
-                    <span>القوة الشرائية</span>
+                    <div class="res-label-box">
+                        <span>القوة الشرائية</span>
+                        <div class="tooltip"><span class="info-icon">🛈</span><span class="tooltiptext">هو كامل قيمة المبالغ التي استثمرتها مضافاً لها أرباحك بعد خصم أثر التضخم.</span></div>
+                    </div>
                     <div class="currency-wrap"><span class="curr-sym">﷼</span><strong class="num-val" id="p" style="color: var(--primary);">0</strong></div>
                 </div>
                 <div class="res-item highlight">
-                    <span>الربح الحقيقي</span>
+                    <div class="res-label-box">
+                        <span>الربح الحقيقي</span>
+                        <div class="tooltip"><span class="info-icon">🛈</span><span class="tooltiptext">هو إجمالي الربح الذي حققته بعد خصم أثر التضخم.</span></div>
+                    </div>
                     <div class="currency-wrap"><span class="curr-sym">﷼</span><strong class="num-val" id="profitReal" style="color: var(--primary);">0</strong></div>
                 </div>
             </div>
+            <button class="export-btn" onclick="exportPDF()">
+                <span>🖨️</span> تصدير التقرير الطولي المطور (PDF)
+            </button>
         </div>
     </div>
-    <div class="chart-area">
+    <div class="chart-area" id="chart-area">
         <svg id="svg" viewBox="-60 0 460 320">
              <g id="gLines"></g>
             <path id="pathFill" /> 
@@ -170,18 +255,59 @@
     </div>
 </div>
 
+<div id="pdf-template">
+    <div class="report-header">
+        <h1 style="color: var(--primary); margin:0; font-size: 24px;">تقرير ادخار استثماري</h1>
+        <div style="text-align: left; font-size: 14px; color: var(--secondary);">التاريخ: <span id="pdf-date"></span></div>
+    </div>
+    <div class="report-body">
+        <div class="report-right">
+            <div class="summary-box">
+                <div class="summary-title">ملخص المدخلات</div>
+                <div class="summary-item">رأس المال: <strong id="pdf-init"></strong></div>
+                <div class="summary-item">الادخار الشهري: <strong id="pdf-m"></strong></div>
+                <div class="summary-item">المدة: <strong id="pdf-years"></strong></div>
+                <div class="summary-item">العائد: <strong id="pdf-r-nom"></strong></div>
+                <div class="summary-item">التضخم: <strong id="pdf-f"></strong></div>
+            </div>
+            <div class="summary-box">
+                <div class="summary-title">النتائج النهائية</div>
+                <div class="summary-item">إجمالي المودع: <strong id="pdf-total-saved"></strong></div>
+                <div class="summary-item">رصيد اسمي: <strong id="pdf-n-total" style="color: var(--nominal);"></strong></div>
+                <div class="summary-item">قوة شرائية: <strong id="pdf-p-total" style="color: var(--primary);"></strong></div>
+                <div class="summary-item">ربح حقيقي: <strong id="pdf-profit-real"></strong></div>
+                <div class="summary-item">ROI حقيقي: <strong id="pdf-roi-real"></strong></div>
+            </div>
+            <div class="report-chart-container" id="pdf-chart-copy"></div>
+        </div>
+        <div class="report-left">
+            <table class="report-table" id="pdf-table">
+                <thead>
+                    <tr>
+                        <th class="col-y">السنة</th>
+                        <th class="col-q">القسط</th>
+                        <th class="col-m">المودع</th>
+                        <th class="col-rn">ربح اسمي</th>
+                        <th class="col-bn">رصيد اسمي</th>
+                        <th class="col-rr">ربح حقيقي</th>
+                        <th class="col-bp">قوة شرائية</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <script>
 const CHART_HEIGHT = 280; 
 const CHART_WIDTH = 390; 
+let globalYearlyData = [];
 
 function resetForm() {
-    document.getElementById('init').value = "";
-    document.getElementById('m').value = "";
-    document.getElementById('r').value = "";
-    document.getElementById('f').value = "";
-    document.getElementById('y').value = "";
-    document.getElementById('type').selectedIndex = 0;
-    document.getElementById('compound').selectedIndex = 0;
+    ['init', 'm', 'r', 'f', 'y', 'stepUp'].forEach(id => document.getElementById(id).value = "");
+    document.getElementById('type').selectedIndex = 1; // افتراضي بداية الشهر
+    document.getElementById('compound').selectedIndex = 1; // افتراضي شهري
     document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('active'));
     calc();
 }
@@ -189,66 +315,68 @@ function resetForm() {
 function setYears(y, btn) {
     document.getElementById('y').value = y;
     document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active'); 
-    calc();
+    btn.classList.add('active'); calc();
 }
 
 function calc() {
     const p = parseFloat(document.getElementById('init').value) || 0;
-    const pmt = parseFloat(document.getElementById('m').value) || 0;
+    const pmtIn = parseFloat(document.getElementById('m').value) || 0;
     const rAnn = (parseFloat(document.getElementById('r').value) || 0) / 100;
     const fAnn = (parseFloat(document.getElementById('f').value) || 0) / 100;
+    const stepUp = (parseFloat(document.getElementById('stepUp').value) || 0) / 100;
     const years = parseInt(document.getElementById('y').value) || 0;
     const typeVal = document.getElementById('type').value;
     const compoundVal = document.getElementById('compound').value;
     
     if (!typeVal || !compoundVal || years === 0) {
-        updateResults(0, 0, 0, 0, 0);
-        drawChart([0], [0], 1);
-        return;
+        updateResults(0, 0, 0, 0, 0, 0); drawChart([0], [0], 1); return;
     }
 
     const n = parseInt(compoundVal);
     const isBeginning = typeVal === 'beginning';
-    let nominalData = []; let realData = [];
-    
-    const i_eff_monthly = Math.pow(1 + rAnn/n, n/12) - 1;
     const rReal = (1 + rAnn) / (1 + fAnn) - 1;
-    const i_real_monthly = Math.pow(1 + rReal/n, n/12) - 1; 
+    const i_nom_m = Math.pow(1 + rAnn/n, n/12) - 1;
+    const i_real_m = Math.pow(1 + rReal/n, n/12) - 1;
 
-    for (let y = 0; y <= years; y++) {
-        const months = y * 12;
-        let fv_pmt_nom = 0;
-        if (Math.abs(i_eff_monthly) > 1e-10) {
-            fv_pmt_nom = pmt * ((Math.pow(1 + i_eff_monthly, months) - 1) / i_eff_monthly);
-            if (isBeginning) fv_pmt_nom *= (1 + i_eff_monthly);
-        } else { fv_pmt_nom = pmt * months; }
-        const fv_p_nom = p * Math.pow(1 + rAnn/n, n * y);
-        nominalData.push(fv_p_nom + fv_pmt_nom);
+    let nominalData = [p]; let realData = [p];
+    globalYearlyData = []; 
+    let curN = p; let curR = p; let curPmt = pmtIn; let totalInv = p;
 
-        let fv_pmt_real = 0;
-        if (Math.abs(i_real_monthly) > 1e-10) { 
-            fv_pmt_real = pmt * ((Math.pow(1 + i_real_monthly, months) - 1) / i_real_monthly);
-            if (isBeginning) fv_pmt_real *= (1 + i_real_monthly);
-        } else { fv_pmt_real = pmt * months; }
-        const fv_p_real = p * Math.pow(1 + rReal/n, n * y);
-        realData.push(fv_p_real + fv_pmt_real);
+    for (let y = 1; y <= years; y++) {
+        for (let m = 1; m <= 12; m++) {
+            if (isBeginning) {
+                curN = (curN + curPmt) * (1 + i_nom_m);
+                curR = (curR + curPmt) * (1 + i_real_m);
+            } else {
+                curN = curN * (1 + i_nom_m) + curPmt;
+                curR = curR * (1 + i_real_m) + curPmt;
+            }
+            totalInv += curPmt;
+        }
+        nominalData.push(curN); realData.push(curR);
+        globalYearlyData.push({
+            year: y,
+            pmt: curPmt,
+            totalSaved: totalInv,
+            nomBal: curN,
+            realBal: curR,
+            nomProfit: curN - totalInv,
+            realProfit: curR - totalInv
+        });
+        if (y < years) curPmt *= (1 + stepUp);
     }
-        
-    const lastN = nominalData[years]; 
-    const lastR = realData[years];
-    const totalInv = p + (pmt * 12 * years);
-    updateResults(totalInv, lastN, lastR, lastN - totalInv, lastR - totalInv);
+    updateResults(totalInv, curN, curR, curN - totalInv, curR - totalInv, curPmt);
     drawChart(nominalData, realData, years);
 }
 
-function updateResults(saved, n, p, profN, profR) {
-    const fmt = new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+function updateResults(saved, n, p, profN, profR, lastPmt) {
+    const fmt = new Intl.NumberFormat('en-US');
     document.getElementById('totalSaved').innerText = fmt.format(Math.round(saved));
-    document.getElementById('n').innerText = fmt.format(n);
-    document.getElementById('p').innerText = fmt.format(p);
-    document.getElementById('profitNominal').innerText = fmt.format(profN);
-    document.getElementById('profitReal').innerText = fmt.format(profR);
+    document.getElementById('n').innerText = fmt.format(Math.round(n));
+    document.getElementById('p').innerText = fmt.format(Math.round(p));
+    document.getElementById('profitNominal').innerText = fmt.format(Math.round(profN));
+    document.getElementById('profitReal').innerText = fmt.format(Math.round(profR));
+    document.getElementById('lastYearPmt').innerText = fmt.format(Math.round(lastPmt));
 }
 
 function drawChart(nData, rData, years) {
@@ -256,7 +384,6 @@ function drawChart(nData, rData, years) {
     const gLines = document.getElementById('gLines'); 
     const gLabels = document.getElementById('gLabels');
     gLines.innerHTML = ''; gLabels.innerHTML = '';
-        
     for (let i = 0; i <= 5; i++) {
         let y = CHART_HEIGHT - (i * CHART_HEIGHT / 5);
         let val = (maxVal * i / 5);
@@ -264,7 +391,6 @@ function drawChart(nData, rData, years) {
         gLines.innerHTML += `<line x1="0" y1="${y}" x2="${CHART_WIDTH}" y2="${y}" class="grid-line" />`;
         gLines.innerHTML += `<text x="-15" y="${y + 3}" class="axis-text" text-anchor="end">${label}</text>`;
     }
-
     let dN = ""; let dR = "";
     nData.forEach((v, i) => {
         let x = (i / years) * CHART_WIDTH;
@@ -273,24 +399,85 @@ function drawChart(nData, rData, years) {
         dN += (i === 0 ? 'M' : 'L') + ` ${x} ${yN}`;
         dR += (i === 0 ? 'M' : 'L') + ` ${x} ${yR}`;
         const step = Math.max(1, Math.ceil(years / 5));
-        if (i % step === 0 || i === years) {
-            gLabels.innerHTML += `<text x="${x}" y="${CHART_HEIGHT + 20}" class="axis-text" text-anchor="middle">${i}س</text>`;
-        }
+        if (i % step === 0 || i === years) gLabels.innerHTML += `<text x="${x}" y="${CHART_HEIGHT + 20}" class="axis-text" text-anchor="middle">${i}س</text>`;
     });
-
+    document.getElementById('pathN').setAttribute('d', dN);
+    document.getElementById('pathR').setAttribute('d', dR);
     let dReverseR = "";
     for(let i = rData.length - 1; i >= 0; i--) {
         let x = (i / years) * CHART_WIDTH;
         let yR = CHART_HEIGHT - (rData[i] / maxVal * CHART_HEIGHT);
         dReverseR += ` L ${x} ${yR}`;
     }
-    let dFill = dN + dReverseR + " Z";
-    document.getElementById('pathN').setAttribute('d', dN);
-    document.getElementById('pathR').setAttribute('d', dR);
-    document.getElementById('pathFill').setAttribute('d', dFill);
+    document.getElementById('pathFill').setAttribute('d', dN + dReverseR + " Z");
 }
-window.onload = resetForm;
+
+async function exportPDF() {
+    const yearsInput = parseInt(document.getElementById('y').value);
+    if (!yearsInput) { alert("يرجى إكمال البيانات أولاً"); return; }
+
+    const { jsPDF } = window.jspdf;
+    const fmt = new Intl.NumberFormat('en-US');
+    const template = document.getElementById('pdf-template');
+    
+    document.getElementById('pdf-date').innerText = new Date().toLocaleDateString('ar-SA');
+    document.getElementById('pdf-init').innerText = fmt.format(document.getElementById('init').value || 0) + " ﷼";
+    document.getElementById('pdf-m').innerText = fmt.format(document.getElementById('m').value || 0) + " ﷼";
+    document.getElementById('pdf-years').innerText = document.getElementById('y').value + " سنة";
+    document.getElementById('pdf-r-nom').innerText = (document.getElementById('r').value || 0) + "%";
+    document.getElementById('pdf-f').innerText = (document.getElementById('f').value || 0) + "%";
+    document.getElementById('pdf-total-saved').innerText = document.getElementById('totalSaved').innerText + " ﷼";
+    document.getElementById('pdf-n-total').innerText = document.getElementById('n').innerText + " ﷼";
+    document.getElementById('pdf-p-total').innerText = document.getElementById('p').innerText + " ﷼";
+    document.getElementById('pdf-profit-real').innerText = document.getElementById('profitReal').innerText + " ﷼";
+
+    const totalSavedNum = parseFloat(document.getElementById('totalSaved').innerText.replace(/,/g, ''));
+    const realTotalNum = parseFloat(document.getElementById('p').innerText.replace(/,/g, ''));
+    const roiReal = ((realTotalNum / totalSavedNum - 1) * 100).toFixed(1);
+    document.getElementById('pdf-roi-real').innerText = roiReal + "%";
+
+    const tbody = document.querySelector('#pdf-table tbody');
+    tbody.innerHTML = globalYearlyData.map(d => `
+        <tr>
+            <td>${d.year}</td>
+            <td>${fmt.format(Math.round(d.pmt))}</td>
+            <td>${fmt.format(Math.round(d.totalSaved))}</td>
+            <td>${fmt.format(Math.round(d.nomProfit))}</td>
+            <td>${fmt.format(Math.round(d.nomBal))}</td>
+            <td>${fmt.format(Math.round(d.realProfit))}</td>
+            <td>${fmt.format(Math.round(d.realBal))}</td>
+        </tr>`).join('');
+
+    const chartContainer = document.getElementById('pdf-chart-copy');
+    chartContainer.innerHTML = '';
+    const svgClone = document.getElementById('svg').cloneNode(true);
+    svgClone.setAttribute("width", "280");
+    chartContainer.appendChild(svgClone);
+
+    try {
+        const canvas = await html2canvas(template, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4'); // 'p' للوضع الطولي
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save('Investment_Report.pdf');
+    } catch (e) { console.error(e); }
+}
+
+window.onload = () => {
+    // تعبئة قيم افتراضية لكي لا تكون الحاسبة فارغة عند التشغيل
+    document.getElementById('init').value = 10000;
+    document.getElementById('m').value = 1000;
+    document.getElementById('y').value = 30;
+    document.getElementById('r').value = 10;
+    document.getElementById('f').value = 3;
+    document.getElementById('stepUp').value = 5;
+    document.getElementById('type').value = 'beginning';
+    document.getElementById('compound').value = '12';
+    calc();
+};
 </script>
 </body>
 </html>
-
